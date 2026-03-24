@@ -1,11 +1,15 @@
+<claude-md>
 # プロジェクトレベル CLAUDE.md の例
 
 これはプロジェクトレベルの CLAUDE.md ファイルの例です。プロジェクトルートに配置してください。
 
+<section>
 ## プロジェクト概要
 
 [プロジェクトの簡単な説明 - 何をするか、技術スタック]
+</section>
 
+<section>
 ## 重要なルール
 
 ### 1. コード構成
@@ -38,7 +42,9 @@
 - すべてのユーザー入力を検証
 - パラメータ化クエリのみ使用
 - CSRF保護を有効化
+</section>
 
+<section>
 ## ファイル構造
 
 ```
@@ -49,7 +55,9 @@ src/
 |-- lib/              # ユーティリティライブラリ
 |-- types/            # TypeScript定義
 ```
+</section>
 
+<section>
 ## 主要パターン
 
 ### APIレスポンス形式
@@ -73,7 +81,9 @@ try {
   return { success: false, error: 'User-friendly message' }
 }
 ```
+</section>
 
+<section>
 ## 環境変数
 
 ```bash
@@ -84,17 +94,25 @@ API_KEY=
 # オプション
 DEBUG=false
 ```
+</section>
 
+<section>
 ## 利用可能なコマンド
 
 - `/tdd` - テスト駆動開発ワークフロー
 - `/plan` - 実装計画を作成
 - `/code-review` - コード品質をレビュー
 - `/build-fix` - ビルドエラーを修正
+</section>
 
+<git>
 ## Gitワークフロー
 
 - Conventional Commits: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`
 - mainに直接コミットしない
 - PRにはレビューが必要
 - マージ前にすべてのテストが合格する必要がある
+
+you MUST always use an agent team to non-trivial tasks.
+</git>
+</claude-md>

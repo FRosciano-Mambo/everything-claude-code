@@ -1,11 +1,15 @@
+<example-project-claude-md>
 # Example Project CLAUDE.md
 
 This is an example project-level CLAUDE.md file. Place this in your project root.
 
+<project-overview>
 ## Project Overview
 
 [Brief description of your project - what it does, tech stack]
+</project-overview>
 
+<critical-rules>
 ## Critical Rules
 
 ### 1. Code Organization
@@ -38,7 +42,9 @@ This is an example project-level CLAUDE.md file. Place this in your project root
 - Validate all user inputs
 - Parameterized queries only
 - CSRF protection enabled
+</critical-rules>
 
+<file-structure>
 ## File Structure
 
 ```
@@ -49,7 +55,9 @@ src/
 |-- lib/              # Utility libraries
 |-- types/            # TypeScript definitions
 ```
+</file-structure>
 
+<key-patterns>
 ## Key Patterns
 
 ### API Response Format
@@ -73,7 +81,9 @@ try {
   return { success: false, error: 'User-friendly message' }
 }
 ```
+</key-patterns>
 
+<environment-variables>
 ## Environment Variables
 
 ```bash
@@ -84,17 +94,25 @@ API_KEY=
 # Optional
 DEBUG=false
 ```
+</environment-variables>
 
+<available-commands>
 ## Available Commands
 
 - `/tdd` - Test-driven development workflow
 - `/plan` - Create implementation plan
 - `/code-review` - Review code quality
 - `/build-fix` - Fix build errors
+</available-commands>
 
+<git-workflow>
 ## Git Workflow
 
 - Conventional commits: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`
 - Never commit to main directly
 - PRs require review
 - All tests must pass before merge
+
+you MUST always use an agent team to non-trivial tasks.
+</git-workflow>
+</example-project-claude-md>

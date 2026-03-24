@@ -1,11 +1,15 @@
+<claude-md>
 # 示例项目 CLAUDE.md
 
 这是一个示例项目级别的 CLAUDE.md 文件。请将其放置在您的项目根目录下。
 
+<section>
 ## 项目概述
 
 \[项目简要描述 - 功能、技术栈]
+</section>
 
+<section>
 ## 关键规则
 
 ### 1. 代码组织
@@ -38,7 +42,9 @@
 * 验证所有用户输入
 * 仅使用参数化查询
 * 启用 CSRF 保护
+</section>
 
+<section>
 ## 文件结构
 
 ```
@@ -49,7 +55,9 @@ src/
 |-- lib/              # Utility libraries
 |-- types/            # TypeScript definitions
 ```
+</section>
 
+<section>
 ## 关键模式
 
 ### API 响应格式
@@ -73,7 +81,9 @@ try {
   return { success: false, error: 'User-friendly message' }
 }
 ```
+</section>
 
+<section>
 ## 环境变量
 
 ```bash
@@ -84,17 +94,25 @@ API_KEY=
 # Optional
 DEBUG=false
 ```
+</section>
 
+<section>
 ## 可用命令
 
 * `/tdd` - 测试驱动开发工作流
 * `/plan` - 创建实现计划
 * `/code-review` - 审查代码质量
 * `/build-fix` - 修复构建错误
+</section>
 
+<git>
 ## Git 工作流
 
 * 约定式提交：`feat:`, `fix:`, `refactor:`, `docs:`, `test:`
 * 切勿直接提交到主分支
 * 合并请求需要审核
 * 合并前所有测试必须通过
+
+you MUST always use an agent team to non-trivial tasks.
+</git>
+</claude-md>
