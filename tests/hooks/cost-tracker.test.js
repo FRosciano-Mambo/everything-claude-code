@@ -28,6 +28,13 @@ function makeTempDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'cost-tracker-test-'));
 }
 
+function withTempHome(homeDir) {
+  return {
+    HOME: homeDir,
+    USERPROFILE: homeDir,
+  };
+}
+
 function runScript(input, envOverrides = {}) {
   const inputStr = typeof input === 'string' ? input : JSON.stringify(input);
   const result = spawnSync('node', [script], {
@@ -64,7 +71,7 @@ function runTests() {
       model: 'claude-sonnet-4-20250514',
       usage: { input_tokens: 1000, output_tokens: 500 },
     };
-    const result = runScript(input, { HOME: tmpHome });
+    const result = runScript(input, withTempHome(tmpHome));
     assert.strictEqual(result.code, 0, `Expected exit code 0, got ${result.code}`);
 
     const metricsFile = path.join(tmpHome, '.claude', 'metrics', 'costs.jsonl');
@@ -84,7 +91,7 @@ function runTests() {
   // 3. Handles empty input gracefully
   (test('handles empty input gracefully', () => {
     const tmpHome = makeTempDir();
-    const result = runScript('', { HOME: tmpHome });
+    const result = runScript('', withTempHome(tmpHome));
     assert.strictEqual(result.code, 0, `Expected exit code 0, got ${result.code}`);
     // stdout should be empty since input was empty
     assert.strictEqual(result.stdout, '', 'Expected empty stdout for empty input');
@@ -96,7 +103,7 @@ function runTests() {
   (test('handles invalid JSON gracefully', () => {
     const tmpHome = makeTempDir();
     const invalidInput = 'not valid json {{{';
-    const result = runScript(invalidInput, { HOME: tmpHome });
+    const result = runScript(invalidInput, withTempHome(tmpHome));
     assert.strictEqual(result.code, 0, `Expected exit code 0, got ${result.code}`);
     // Should still pass through the raw input on stdout
     assert.strictEqual(result.stdout, invalidInput, 'Expected stdout to contain original invalid input');
@@ -109,7 +116,7 @@ function runTests() {
     const tmpHome = makeTempDir();
     const input = { model: 'claude-sonnet-4-20250514' };
     const inputStr = JSON.stringify(input);
-    const result = runScript(input, { HOME: tmpHome });
+    const result = runScript(input, withTempHome(tmpHome));
     assert.strictEqual(result.code, 0, `Expected exit code 0, got ${result.code}`);
     assert.strictEqual(result.stdout, inputStr, 'Expected stdout to match original input');
 
@@ -120,6 +127,27 @@ function runTests() {
     assert.strictEqual(row.input_tokens, 0, 'Expected input_tokens to be 0 when missing');
     assert.strictEqual(row.output_tokens, 0, 'Expected output_tokens to be 0 when missing');
     assert.strictEqual(row.estimated_cost_usd, 0, 'Expected estimated_cost_usd to be 0 when no tokens');
+
+    fs.rmSync(tmpHome, { recursive: true, force: true });
+  }) ? passed++ : failed++);
+
+  // 6. Prefers ECC_SESSION_ID for ECC2 session correlation
+  (test('prefers ECC_SESSION_ID over CLAUDE_SESSION_ID when both are present', () => {
+    const tmpHome = makeTempDir();
+    const input = {
+      model: 'claude-sonnet-4-20250514',
+      usage: { input_tokens: 120, output_tokens: 30 },
+    };
+    const result = runScript(input, {
+      ...withTempHome(tmpHome),
+      ECC_SESSION_ID: 'ecc-session-1234',
+      CLAUDE_SESSION_ID: 'claude-session-9999',
+    });
+    assert.strictEqual(result.code, 0, `Expected exit code 0, got ${result.code}`);
+
+    const metricsFile = path.join(tmpHome, '.claude', 'metrics', 'costs.jsonl');
+    const row = JSON.parse(fs.readFileSync(metricsFile, 'utf8').trim());
+    assert.strictEqual(row.session_id, 'ecc-session-1234', 'Expected ECC_SESSION_ID to win');
 
     fs.rmSync(tmpHome, { recursive: true, force: true });
   }) ? passed++ : failed++);

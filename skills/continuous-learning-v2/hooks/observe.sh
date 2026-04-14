@@ -57,7 +57,8 @@ fi
 # ─────────────────────────────────────────────
 
 # Extract cwd from the hook JSON to use for project detection.
-# This avoids spawning a separate git subprocess when cwd is available.
+# If cwd is a subdirectory inside a git repo, resolve it to the repo root so
+# observations attach to the project instead of a nested path.
 STDIN_CWD=$(echo "$INPUT_JSON" | "$PYTHON_CMD" -c '
 import json, sys
 try:
@@ -70,7 +71,8 @@ except(KeyError, TypeError, ValueError):
 
 # If cwd was provided in stdin, use it for project detection
 if [ -n "$STDIN_CWD" ] && [ -d "$STDIN_CWD" ]; then
-  export CLAUDE_PROJECT_DIR="$STDIN_CWD"
+  _GIT_ROOT=$(git -C "$STDIN_CWD" rev-parse --show-toplevel 2>/dev/null || true)
+  export CLAUDE_PROJECT_DIR="${_GIT_ROOT:-$STDIN_CWD}"
 fi
 
 # ─────────────────────────────────────────────
@@ -97,8 +99,11 @@ fi
 #   - automated sessions creating project-scoped homunculus metadata
 
 # Layer 1: entrypoint. Only interactive terminal sessions should continue.
+# sdk-ts: Agent SDK sessions can be human-interactive (e.g. via Happy).
+# Non-interactive SDK automation is still filtered by Layers 2-5 below
+# (ECC_HOOK_PROFILE=minimal, ECC_SKIP_OBSERVE=1, agent_id, path exclusions).
 case "${CLAUDE_CODE_ENTRYPOINT:-cli}" in
-  cli) ;;
+  cli|sdk-ts) ;;
   *) exit 0 ;;
 esac
 
@@ -347,7 +352,7 @@ if [ "$OBSERVER_ENABLED" = "true" ]; then
         fi
       ) 9>"$LAZY_START_LOCK"
     else
-      # macOS fallback: use lockfile if available, otherwise skip
+      # macOS fallback: use lockfile if available, otherwise mkdir-based lock
       if command -v lockfile >/dev/null 2>&1; then
         # Use subshell to isolate exit and add trap for cleanup
         (
@@ -360,6 +365,17 @@ if [ "$OBSERVER_ENABLED" = "true" ]; then
           fi
           rm -f "$LAZY_START_LOCK" 2>/dev/null || true
         )
+      else
+        # POSIX fallback: mkdir is atomic -- fails if dir already exists
+        (
+          trap 'rmdir "${LAZY_START_LOCK}.d" 2>/dev/null || true' EXIT
+          mkdir "${LAZY_START_LOCK}.d" 2>/dev/null || exit 0
+          _CHECK_OBSERVER_RUNNING "${PROJECT_DIR}/.observer.pid" || true
+          _CHECK_OBSERVER_RUNNING "${CONFIG_DIR}/.observer.pid" || true
+          if [ ! -f "${PROJECT_DIR}/.observer.pid" ] && [ ! -f "${CONFIG_DIR}/.observer.pid" ]; then
+            nohup "${SKILL_ROOT}/agents/start-observer.sh" start >/dev/null 2>&1 &
+          fi
+        )
       fi
     fi
   fi
@@ -370,6 +386,9 @@ fi
 # which caused runaway parallel Claude analysis processes.
 SIGNAL_EVERY_N="${ECC_OBSERVER_SIGNAL_EVERY_N:-20}"
 SIGNAL_COUNTER_FILE="${PROJECT_DIR}/.observer-signal-counter"
+ACTIVITY_FILE="${PROJECT_DIR}/.observer-last-activity"
+
+touch "$ACTIVITY_FILE" 2>/dev/null || true
 
 should_signal=0
 if [ -f "$SIGNAL_COUNTER_FILE" ]; then
