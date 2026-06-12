@@ -1,118 +1,65 @@
-<claude-md>
-# 示例项目 CLAUDE.md
+# CLAUDE.md
 
-这是一个示例项目级别的 CLAUDE.md 文件。请将其放置在您的项目根目录下。
+Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
-<section>
-## 项目概述
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
-\[项目简要描述 - 功能、技术栈]
-</section>
+## 1. Think Before Coding
 
-<section>
-## 关键规则
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
 
-### 1. 代码组织
+Before implementing:
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
 
-* 多个小文件优于少量大文件
-* 高内聚，低耦合
-* 每个文件典型 200-400 行，最多 800 行
-* 按功能/领域组织，而非按类型
+## 2. Simplicity First
 
-### 2. 代码风格
+**Minimum code that solves the problem. Nothing speculative.**
 
-* 代码、注释或文档中不使用表情符号
-* 始终使用不可变性 - 永不改变对象或数组
-* 生产代码中不使用 console.log
-* 使用 try/catch 进行适当的错误处理
-* 使用 Zod 或类似工具进行输入验证
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
 
-### 3. 测试
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 
-* TDD：先写测试
-* 最低 80% 覆盖率
-* 工具函数进行单元测试
-* API 进行集成测试
-* 关键流程进行端到端测试
+## 3. Surgical Changes
 
-### 4. 安全
+**Touch only what you must. Clean up only your own mess.**
 
-* 不硬编码密钥
-* 敏感数据使用环境变量
-* 验证所有用户输入
-* 仅使用参数化查询
-* 启用 CSRF 保护
-</section>
+When editing existing code:
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
 
-<section>
-## 文件结构
+When your changes create orphans:
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
 
+The test: Every changed line should trace directly to the user's request.
+
+## 4. Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+Transform tasks into verifiable goals:
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan:
 ```
-src/
-|-- app/              # Next.js 应用路由
-|-- components/       # 可复用的 UI 组件
-|-- hooks/            # 自定义 React 钩子
-|-- lib/              # 工具库
-|-- types/            # TypeScript 定义
-```
-</section>
-
-<section>
-## 关键模式
-
-### API 响应格式
-
-```typescript
-interface ApiResponse<T> {
-  success: boolean
-  data?: T
-  error?: string
-}
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
 ```
 
-### 错误处理
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
-```typescript
-try {
-  const result = await operation()
-  return { success: true, data: result }
-} catch (error) {
-  console.error('Operation failed:', error)
-  return { success: false, error: 'User-friendly message' }
-}
-```
-</section>
+---
 
-<section>
-## 环境变量
-
-```bash
-# Required
-DATABASE_URL=
-API_KEY=
-
-# Optional
-DEBUG=false
-```
-</section>
-
-<section>
-## 可用命令
-
-* `/tdd` - 测试驱动开发工作流
-* `/plan` - 创建实现计划
-* `/code-review` - 审查代码质量
-* `/build-fix` - 修复构建错误
-</section>
-
-<git>
-## Git 工作流
-
-* 约定式提交：`feat:`, `fix:`, `refactor:`, `docs:`, `test:`
-* 切勿直接提交到主分支
-* 合并请求需要审核
-* 合并前所有测试必须通过
-
-you MUST always use an agent team to non-trivial tasks.
-</git>
-</claude-md>
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.

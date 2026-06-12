@@ -1,118 +1,65 @@
-<claude-md>
-# プロジェクトレベル CLAUDE.md の例
+# CLAUDE.md
 
-これはプロジェクトレベルの CLAUDE.md ファイルの例です。プロジェクトルートに配置してください。
+Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
-<section>
-## プロジェクト概要
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
-[プロジェクトの簡単な説明 - 何をするか、技術スタック]
-</section>
+## 1. Think Before Coding
 
-<section>
-## 重要なルール
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
 
-### 1. コード構成
+Before implementing:
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
 
-- 少数の大きなファイルよりも多数の小さなファイル
-- 高凝集、低結合
-- 通常200-400行、ファイルごとに最大800行
-- 型ではなく、機能/ドメインごとに整理
+## 2. Simplicity First
 
-### 2. コードスタイル
+**Minimum code that solves the problem. Nothing speculative.**
 
-- コード、コメント、ドキュメントに絵文字を使用しない
-- 常に不変性を保つ - オブジェクトや配列を変更しない
-- 本番コードに console.log を使用しない
-- try/catchで適切なエラーハンドリング
-- Zodなどで入力検証
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
 
-### 3. テスト
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 
-- TDD: 最初にテストを書く
-- 最低80%のカバレッジ
-- ユーティリティのユニットテスト
-- APIの統合テスト
-- 重要なフローのE2Eテスト
+## 3. Surgical Changes
 
-### 4. セキュリティ
+**Touch only what you must. Clean up only your own mess.**
 
-- ハードコードされた機密情報を使用しない
-- 機密データには環境変数を使用
-- すべてのユーザー入力を検証
-- パラメータ化クエリのみ使用
-- CSRF保護を有効化
-</section>
+When editing existing code:
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
 
-<section>
-## ファイル構造
+When your changes create orphans:
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
 
+The test: Every changed line should trace directly to the user's request.
+
+## 4. Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+Transform tasks into verifiable goals:
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan:
 ```
-src/
-|-- app/              # Next.js App Router
-|-- components/       # 再利用可能なUIコンポーネント
-|-- hooks/            # カスタムReactフック
-|-- lib/              # ユーティリティライブラリ
-|-- types/            # TypeScript定義
-```
-</section>
-
-<section>
-## 主要パターン
-
-### APIレスポンス形式
-
-```typescript
-interface ApiResponse<T> {
-  success: boolean
-  data?: T
-  error?: string
-}
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
 ```
 
-### エラーハンドリング
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
-```typescript
-try {
-  const result = await operation()
-  return { success: true, data: result }
-} catch (error) {
-  console.error('Operation failed:', error)
-  return { success: false, error: 'User-friendly message' }
-}
-```
-</section>
+---
 
-<section>
-## 環境変数
-
-```bash
-# 必須
-DATABASE_URL=
-API_KEY=
-
-# オプション
-DEBUG=false
-```
-</section>
-
-<section>
-## 利用可能なコマンド
-
-- `/tdd` - テスト駆動開発ワークフロー
-- `/plan` - 実装計画を作成
-- `/code-review` - コード品質をレビュー
-- `/build-fix` - ビルドエラーを修正
-</section>
-
-<git>
-## Gitワークフロー
-
-- Conventional Commits: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`
-- mainに直接コミットしない
-- PRにはレビューが必要
-- マージ前にすべてのテストが合格する必要がある
-
-you MUST always use an agent team to non-trivial tasks.
-</git>
-</claude-md>
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.

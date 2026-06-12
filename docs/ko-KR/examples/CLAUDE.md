@@ -1,100 +1,65 @@
-# 프로젝트 CLAUDE.md 예제
+# CLAUDE.md
 
-프로젝트 수준의 CLAUDE.md 파일 예제입니다. 프로젝트 루트에 배치하세요.
+Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
-## 프로젝트 개요
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
-[프로젝트에 대한 간단한 설명 - 기능, 기술 스택]
+## 1. Think Before Coding
 
-## 핵심 규칙
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
 
-### 1. 코드 구성
+Before implementing:
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
 
-- 큰 파일 소수보다 작은 파일 다수를 선호
-- 높은 응집도, 낮은 결합도
-- 일반적으로 200-400줄, 파일당 최대 800줄
-- 타입별이 아닌 기능/도메인별로 구성
+## 2. Simplicity First
 
-### 2. 코드 스타일
+**Minimum code that solves the problem. Nothing speculative.**
 
-- 코드, 주석, 문서에 이모지 사용 금지
-- 항상 불변성 유지 - 객체나 배열을 직접 변경하지 않음
-- 프로덕션 코드에 console.log 사용 금지
-- try/catch를 사용한 적절한 에러 처리
-- Zod 또는 유사 라이브러리를 사용한 입력 유효성 검사
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
 
-### 3. 테스트
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 
-- TDD: 테스트를 먼저 작성
-- 최소 80% 커버리지
-- 유틸리티에 대한 단위 테스트
-- API에 대한 통합 테스트
-- 핵심 흐름에 대한 E2E 테스트
+## 3. Surgical Changes
 
-### 4. 보안
+**Touch only what you must. Clean up only your own mess.**
 
-- 하드코딩된 시크릿 금지
-- 민감한 데이터는 환경 변수 사용
-- 모든 사용자 입력 유효성 검사
-- 매개변수화된 쿼리만 사용
-- CSRF 보호 활성화
+When editing existing code:
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
 
-## 파일 구조
+When your changes create orphans:
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
 
+The test: Every changed line should trace directly to the user's request.
+
+## 4. Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+Transform tasks into verifiable goals:
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan:
 ```
-src/
-|-- app/              # Next.js app router
-|-- components/       # 재사용 가능한 UI 컴포넌트
-|-- hooks/            # 커스텀 React hooks
-|-- lib/              # 유틸리티 라이브러리
-|-- types/            # TypeScript 타입 정의
-```
-
-## 주요 패턴
-
-### API 응답 형식
-
-```typescript
-interface ApiResponse<T> {
-  success: boolean
-  data?: T
-  error?: string
-}
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
 ```
 
-### 에러 처리
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
-```typescript
-try {
-  const result = await operation()
-  return { success: true, data: result }
-} catch (error) {
-  console.error('Operation failed:', error)
-  return { success: false, error: 'User-friendly message' }
-}
-```
+---
 
-## 환경 변수
-
-```bash
-# 필수
-DATABASE_URL=
-API_KEY=
-
-# 선택
-DEBUG=false
-```
-
-## 사용 가능한 명령어
-
-- `/tdd` - 테스트 주도 개발 워크플로우
-- `/plan` - 구현 계획 생성
-- `/code-review` - 코드 품질 리뷰
-- `/build-fix` - 빌드 에러 수정
-
-## Git 워크플로우
-
-- Conventional commits: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`
-- main 브랜치에 직접 커밋 금지
-- PR은 리뷰 필수
-- 병합 전 모든 테스트 통과 필수
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.

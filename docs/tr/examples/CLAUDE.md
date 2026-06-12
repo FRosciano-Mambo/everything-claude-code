@@ -1,100 +1,65 @@
-# Örnek Proje CLAUDE.md
+# CLAUDE.md
 
-Bu, örnek bir proje seviyesi CLAUDE.md dosyasıdır. Bunu proje kök dizininize yerleştirin.
+Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
-## Proje Genel Bakış
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
-[Projenizin kısa açıklaması - ne yaptığı, teknoloji yığını]
+## 1. Think Before Coding
 
-## Kritik Kurallar
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
 
-### 1. Kod Organizasyonu
+Before implementing:
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
 
-- Birkaç büyük dosya yerine çok sayıda küçük dosya
-- Yüksek bağlılık, düşük bağımlılık
-- Tipik olarak 200-400 satır, dosya başına maksimum 800 satır
-- Tipe göre değil, özellik/domain'e göre organize edin
+## 2. Simplicity First
 
-### 2. Kod Stili
+**Minimum code that solves the problem. Nothing speculative.**
 
-- Kod, yorum veya dokümantasyonda emoji kullanmayın
-- Her zaman değişmezlik - asla obje veya array'leri mutate etmeyin
-- Production kodunda console.log kullanmayın
-- try/catch ile uygun hata yönetimi
-- Zod veya benzeri ile input validasyonu
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
 
-### 3. Test
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 
-- TDD: Önce testleri yazın
-- Minimum %80 kapsama
-- Utility'ler için unit testler
-- API'ler için integration testler
-- Kritik akışlar için E2E testler
+## 3. Surgical Changes
 
-### 4. Güvenlik
+**Touch only what you must. Clean up only your own mess.**
 
-- Hardcoded secret kullanmayın
-- Hassas veriler için environment variable'lar
-- Tüm kullanıcı girdilerini validate edin
-- Sadece parametreli sorgular
-- CSRF koruması aktif
+When editing existing code:
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
 
-## Dosya Yapısı
+When your changes create orphans:
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
 
+The test: Every changed line should trace directly to the user's request.
+
+## 4. Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+Transform tasks into verifiable goals:
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan:
 ```
-src/
-|-- app/              # Next.js app router
-|-- components/       # Tekrar kullanılabilir UI bileşenleri
-|-- hooks/            # Custom React hooks
-|-- lib/              # Utility kütüphaneleri
-|-- types/            # TypeScript tanımlamaları
-```
-
-## Temel Desenler
-
-### API Response Formatı
-
-```typescript
-interface ApiResponse<T> {
-  success: boolean
-  data?: T
-  error?: string
-}
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
 ```
 
-### Hata Yönetimi
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
-```typescript
-try {
-  const result = await operation()
-  return { success: true, data: result }
-} catch (error) {
-  console.error('Operation failed:', error)
-  return { success: false, error: 'Kullanıcı dostu mesaj' }
-}
-```
+---
 
-## Environment Variable'lar
-
-```bash
-# Gerekli
-DATABASE_URL=
-API_KEY=
-
-# Opsiyonel
-DEBUG=false
-```
-
-## Kullanılabilir Komutlar
-
-- `/tdd` - Test-driven development iş akışı
-- `/plan` - Uygulama planı oluştur
-- `/code-review` - Kod kalitesini gözden geçir
-- `/build-fix` - Build hatalarını düzelt
-
-## Git İş Akışı
-
-- Conventional commit'ler: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`
-- Asla doğrudan main'e commit yapmayın
-- PR'lar review gerektirir
-- Merge'den önce tüm testler geçmeli
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.

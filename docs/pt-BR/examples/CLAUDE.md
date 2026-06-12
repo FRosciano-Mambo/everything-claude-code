@@ -1,100 +1,65 @@
-# Exemplo de CLAUDE.md de Projeto
+# CLAUDE.md
 
-Este é um exemplo de arquivo CLAUDE.md no nível de projeto. Coloque-o na raiz do seu projeto.
+Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
-## Visão Geral do Projeto
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
-[Descrição breve do seu projeto - o que ele faz, stack tecnológica]
+## 1. Think Before Coding
 
-## Regras Críticas
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
 
-### 1. Organização de Código
+Before implementing:
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
 
-- Muitos arquivos pequenos em vez de poucos arquivos grandes
-- Alta coesão, baixo acoplamento
-- 200-400 linhas típico, 800 máximo por arquivo
-- Organize por feature/domínio, não por tipo
+## 2. Simplicity First
 
-### 2. Estilo de Código
+**Minimum code that solves the problem. Nothing speculative.**
 
-- Sem emojis em código, comentários ou documentação
-- Imutabilidade sempre - nunca mutar objetos ou arrays
-- Sem console.log em código de produção
-- Tratamento de erro adequado com try/catch
-- Validação de entrada com Zod ou similar
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
 
-### 3. Testes
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 
-- TDD: escreva testes primeiro
-- Cobertura mínima de 80%
-- Testes unitários para utilitários
-- Testes de integração para APIs
-- Testes E2E para fluxos críticos
+## 3. Surgical Changes
 
-### 4. Segurança
+**Touch only what you must. Clean up only your own mess.**
 
-- Sem segredos hardcoded
-- Variáveis de ambiente para dados sensíveis
-- Validar toda entrada de usuário
-- Apenas queries parametrizadas
-- Proteção CSRF habilitada
+When editing existing code:
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
 
-## Estrutura de Arquivos
+When your changes create orphans:
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
 
+The test: Every changed line should trace directly to the user's request.
+
+## 4. Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+Transform tasks into verifiable goals:
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan:
 ```
-src/
-|-- app/              # Next.js app router
-|-- components/       # Reusable UI components
-|-- hooks/            # Custom React hooks
-|-- lib/              # Utility libraries
-|-- types/            # TypeScript definitions
-```
-
-## Padrões-Chave
-
-### Formato de Resposta de API
-
-```typescript
-interface ApiResponse<T> {
-  success: boolean
-  data?: T
-  error?: string
-}
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
 ```
 
-### Tratamento de Erro
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
-```typescript
-try {
-  const result = await operation()
-  return { success: true, data: result }
-} catch (error) {
-  console.error('Operation failed:', error)
-  return { success: false, error: 'User-friendly message' }
-}
-```
+---
 
-## Variáveis de Ambiente
-
-```bash
-# Required
-DATABASE_URL=
-API_KEY=
-
-# Optional
-DEBUG=false
-```
-
-## Comandos Disponíveis
-
-- `/tdd` - Fluxo de desenvolvimento orientado a testes
-- `/plan` - Criar plano de implementação
-- `/code-review` - Revisar qualidade de código
-- `/build-fix` - Corrigir erros de build
-
-## Fluxo Git
-
-- Conventional commits: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`
-- Nunca commitar direto na main
-- PRs exigem revisão
-- Todos os testes devem passar antes do merge
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
